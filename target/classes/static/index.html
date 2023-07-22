@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contacts Application</title>
+</head>
+<body>
+<h1>Contacts Application</h1>
+
+<!-- Page to Create a Contact -->
+<h2>Create a Contact</h2>
+<form id="createContactForm">
+    <label for="firstName">First Name:</label>
+    <input type="text" id="firstName" name="firstName" required><br>
+
+    <label for="lastName">Last Name:</label>
+    <input type="text" id="lastName" name="lastName" required><br>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required><br>
+
+    <label for="phoneNumbers">Phone Numbers (comma-separated):</label>
+    <input type="text" id="phoneNumbers" name="phoneNumbers" required><br>
+
+    <button type="submit">Create Contact</button>
+</form>
+
+<!-- Page to Update a Contact -->
+<h2>Update Contact</h2>
+<form id="updateContactForm">
+    <label for="contactIdToUpdate">Contact ID to Update:</label>
+    <input type="text" id="contactIdToUpdate" name="contactIdToUpdate" required><br>
+
+    <label for="updatedFirstName">Updated First Name:</label>
+    <input type="text" id="updatedFirstName" name="updatedFirstName" required><br>
+
+    <label for="updatedLastName">Updated Last Name:</label>
+    <input type="text" id="updatedLastName" name="updatedLastName" required><br>
+
+    <label for="updatedEmail">Updated Email:</label>
+    <input type="email" id="updatedEmail" name="updatedEmail" required><br>
+
+    <label for="updatedPhoneNumbers">Updated Phone Numbers (comma-separated):</label>
+    <input type="text" id="updatedPhoneNumbers" name="updatedPhoneNumbers" required><br>
+
+    <button type="submit">Update Contact</button>
+</form>
+
+<!-- Page to List All Contacts -->
+<h2>List of Contacts</h2>
+<ul id="contactList">
+    <!-- The list of contacts will be dynamically populated here -->
+</ul>
+
+<!-- Page to Delete a Contact -->
+<h2>Delete Contact</h2>
+<form id="deleteContactForm">
+    <label for="contactIdToDelete">Contact ID to Delete:</label>
+    <input type="text" id="contactIdToDelete" name="contactIdToDelete" required><br>
+
+    <button type="submit">Delete Contact</button>
+</form>
+
+<script>
+    // Function to fetch contacts and update the contact list
+    function fetchAndDisplayContacts() {
+      fetch('/contacts')
+        .then((response) => response.json())
+        .then((data) => {
+          const contactList = document.getElementById('contactList');
+          contactList.innerHTML = '';
+
+          data.forEach((contact) => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${contact.firstName} ${contact.lastName} - ${contact.email} - ${contact.phoneNumbers.join(', ')}`;
+            contactList.appendChild(listItem);
+          });
+        })
+        .catch((error) => {
+          console.error('Error fetching contacts:', error);
+        });
+    }
+
+    // Event listener for creating a contact
+    document.getElementById('createContactForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const firstName = document.getElementById('firstName').value;
+      const lastName = document.getElementById('lastName').value;
+      const email = document.getElementById('email').value;
+      const phoneNumbers = document.getElementById('phoneNumbers').value.split(',');
+
+      fetch('/contacts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          phoneNumbers,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log('Contact created successfully:', data);
+          fetchAndDisplayContacts(); // Update the contact list
+        })
+        .catch((error) => {
+          console.error('Error creating contact:', error);
+        });
+    });
+
+    // Event listener for updating a contact
+    document.getElementById('updateContactForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const contactIdToUpdate = document.getElementById('contactIdToUpdate').value;
+      const updatedFirstName = document.getElementById('updatedFirstName').value;
+      const updatedLastName = document.getElementById('updatedLastName').value;
+      const updatedEmail = document.getElementById('updatedEmail').value;
+      const updatedPhoneNumbers = document.getElementById('updatedPhoneNumbers').value.split(',');
+
+      fetch(`/contacts/${contactIdToUpdate}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: updatedFirstName,
+          lastName: updatedLastName,
+          email: updatedEmail,
+          phoneNumbers: updatedPhoneNumbers,
+        }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log('Contact updated successfully:', data);
+          fetchAndDisplayContacts(); // Update the contact list
+        })
+        .catch((error) => {
+          console.error('Error updating contact:', error);
+        });
+    });
+
+    // Event listener for deleting a contact
+    document.getElementById('deleteContactForm').addEventListener('submit', function (event) {
+      event.preventDefault();
+      const contactIdToDelete = document.getElementById('contactIdToDelete').value;
+
+      fetch(`/contacts/${contactIdToDelete}`, {
+        method: 'DELETE',
+      })
+        .then((response) => {
+          if (response.status === 204) {
+            console.log('Contact deleted successfully');
+            fetchAndDisplayContacts(); // Update the contact list
+          } else {
+            console.error('Error deleting contact:', response);
+          }
+        })
+        .catch((error) => {
+          console.error('Error deleting contact:', error);
+        });
+    });
+
+    // Fetch and display contacts when the page loads
+    fetchAndDisplayContacts();
+  </script>
+</body>
+</html>
